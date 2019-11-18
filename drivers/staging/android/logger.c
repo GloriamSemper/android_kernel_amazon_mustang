@@ -1220,6 +1220,7 @@ void logger_kmsg_write(const char *log_msg, size_t len)
 	/* get the main log handler */
 	if (!kmsg_log) {
 		list_for_each_entry(log, &log_list, logs)
+                       if (0 == strcmp(log->misc.name, LOGGER_LOG_KERNEL)) {
 				kmsg_log = log;
 				break;
 				}
@@ -1277,7 +1278,7 @@ void logger_kmsg_write(const char *log_msg, size_t len)
 	 * down_trylock() call, then we call logger_kmsg_drain_delayed()
 	 * to actually drain messages in the ring buffer.
 	 */
-	if (down_trylock(&log->sem)) {
+	if (down_trylock(&log->mutex)) {
 		int ret = logger_kmsg_drain(&header, log_msg, len);
 		return;
 	}

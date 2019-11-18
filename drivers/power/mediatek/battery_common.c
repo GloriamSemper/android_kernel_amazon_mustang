@@ -53,6 +53,9 @@
 #include <linux/of_address.h>
 #endif
 #include <linux/suspend.h>
+
+#include <linux/reboot.h>
+
 #include <linux/thermal.h>
 #include <linux/thermal_framework.h>
 #include <linux/platform_data/mtk_thermal.h>
@@ -230,6 +233,470 @@ static int cmd_discharging = -1;
 static int adjust_power = -1;
 static int suspend_discharging = -1;
 static bool is_uisoc_ever_100;
+
+
+/* ////////////////////////////////////////////////////////////////////////////// */
+/* FOR ANDROID BATTERY SERVICE */
+/* ////////////////////////////////////////////////////////////////////////////// */
+
+struct wireless_data {
+	struct power_supply psy;
+	int WIRELESS_ONLINE;
+	int wireless_old_state;
+};
+
+struct ac_data {
+	struct power_supply psy;
+	int AC_ONLINE;
+	int ac_present;
+	int ac_present_old;
+	int ac_old_state;
+};
+
+struct usb_data {
+	struct power_supply psy;
+	int USB_ONLINE;
+	int usb_present;
+	int usb_present_old;
+	int usb_old_state;
+};
+
+struct battery_data {
+	struct power_supply psy;
+	int BAT_STATUS;
+	int BAT_HEALTH;
+	int BAT_PRESENT;
+	int BAT_TECHNOLOGY;
+	int BAT_CAPACITY;
+	/* Add for Battery Service */
+	int BAT_batt_vol;
+	int BAT_batt_temp;
+	/* Add for EM */
+	int BAT_TemperatureR;
+	int BAT_TempBattVoltage;
+	int BAT_InstatVolt;
+	int BAT_BatteryAverageCurrent;
+	int BAT_BatterySenseVoltage;
+	int BAT_ISenseVoltage;
+	int BAT_ChargerVoltage;
+	/* Dual battery */
+	int status_smb;
+	int capacity_smb;
+	int present_smb;
+	int adjust_power;
+	struct mtk_cooler_platform_data *cool_dev;
+};
+
+static enum power_supply_property wireless_props[] = {
+	POWER_SUPPLY_PROP_ONLINE,
+};
+
+static enum power_supply_property ac_props[] = {
+	POWER_SUPPLY_PROP_ONLINE,
+	POWER_SUPPLY_PROP_PRESENT,
+	POWER_SUPPLY_PROP_VOLTAGE_MAX,
+	POWER_SUPPLY_PROP_CURRENT_MAX,
+};
+
+static enum power_supply_property usb_props[] = {
+	POWER_SUPPLY_PROP_ONLINE,
+	POWER_SUPPLY_PROP_PRESENT,
+	POWER_SUPPLY_PROP_VOLTAGE_MAX,
+	POWER_SUPPLY_PROP_CURRENT_MAX,
+};
+
+static enum power_supply_property battery_props[] = {
+	POWER_SUPPLY_PROP_STATUS,
+	POWER_SUPPLY_PROP_HEALTH,
+	POWER_SUPPLY_PROP_PRESENT,
+	POWER_SUPPLY_PROP_TECHNOLOGY,
+	POWER_SUPPLY_PROP_CAPACITY,
+	POWER_SUPPLY_PROP_CHARGE_COUNTER,
+	/* Add for Battery Service */
+	POWER_SUPPLY_PROP_batt_vol,
+	POWER_SUPPLY_PROP_batt_temp,
+	POWER_SUPPLY_PROP_TEMP,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX,
+	/* Add for EM */
+	POWER_SUPPLY_PROP_TemperatureR,
+	POWER_SUPPLY_PROP_TempBattVoltage,
+	POWER_SUPPLY_PROP_InstatVolt,
+	POWER_SUPPLY_PROP_BatteryAverageCurrent,
+	POWER_SUPPLY_PROP_BatterySenseVoltage,
+	POWER_SUPPLY_PROP_ISenseVoltage,
+	POWER_SUPPLY_PROP_ChargerVoltage,
+	/* Dual battery */
+	POWER_SUPPLY_PROP_status_smb,
+	POWER_SUPPLY_PROP_capacity_smb,
+	POWER_SUPPLY_PROP_present_smb,
+	/* ADB CMD Discharging */
+	POWER_SUPPLY_PROP_adjust_power,
+};
+
+int get_charger_detect_status(void)
+{
+	bool chr_status;
+
+	battery_charging_control(CHARGING_CMD_GET_CHARGER_DET_STATUS, &chr_status);
+	return chr_status;
+}
+
+#if defined(CONFIG_MTK_POWER_EXT_DETECT)
+bool bat_is_ext_power(void)
+{
+	bool pwr_src = 0;
+
+	battery_charging_control(CHARGING_CMD_GET_POWER_SOURCE, &pwr_src);
+	pr_debug("[BAT_IS_EXT_POWER] is_ext_power = %d\n", pwr_src);
+	return pwr_src;
+}
+#endif
+
+static void get_charging_control(void);
+/* ///////////////////////////////////////////////////////////////////////////////////////// */
+/* // PMIC PCHR Related APIs */
+/* ///////////////////////////////////////////////////////////////////////////////////////// */
+bool upmu_is_chr_det(void)
+{
+#if !defined(CONFIG_POWER_EXT)
+	unsigned int tmp32;
+#endif
+
+	if (battery_charging_control == NULL)
+		get_charging_control();
+
+#if defined(CONFIG_POWER_EXT)
+	/* return true; */
+	return get_charger_detect_status();
+#else
+	if (suspend_discharging == 1)
+		return false;
+
+	tmp32 = get_charger_detect_status();
+
+#ifdef CONFIG_MTK_POWER_EXT_DETECT
+	if (true == bat_is_ext_power())
+		return tmp32;
+#endif
+
+	if (tmp32 == 0)
+		return false;
+	/*else {*/
+#if !defined(CONFIG_MTK_DUAL_INPUT_CHARGER_SUPPORT)
+		if (mt_usb_is_device()) {
+			pr_debug(
+				    "[upmu_is_chr_det] Charger exist and USB is not host\n");
+
+			return true;
+		} /*else {*/
+			pr_debug("[upmu_is_chr_det] Charger exist but USB is host\n");
+
+			return false;
+		/*}*/
+#else
+		return true;
+#endif
+	/*}*/
+#endif
+}
+EXPORT_SYMBOL(upmu_is_chr_det);
+
+
+void wake_up_bat(void)
+{
+	pr_debug("[BATTERY] wake_up_bat. \r\n");
+
+	chr_wake_up_bat = true;
+	bat_thread_timeout = true;
+#ifdef MTK_ENABLE_AGING_ALGORITHM
+	suspend_time = 0;
+#endif
+	_g_bat_sleep_total_time = 0;
+	wake_up(&bat_thread_wq);
+}
+EXPORT_SYMBOL(wake_up_bat);
+
+
+#ifdef FG_BAT_INT
+void wake_up_bat2(void)
+{
+	pr_debug("[BATTERY] wake_up_bat2. \r\n");
+
+	wake_lock(&battery_fg_lock);
+	fg_wake_up_bat = true;
+	bat_thread_timeout = true;
+#ifdef MTK_ENABLE_AGING_ALGORITHM
+	suspend_time = 0;
+#endif
+	_g_bat_sleep_total_time = 0;
+	wake_up(&bat_thread_wq);
+}
+EXPORT_SYMBOL(wake_up_bat2);
+#endif				/* #ifdef FG_BAT_INT */
+
+static int wireless_get_property(struct power_supply *psy,
+				 enum power_supply_property psp, union power_supply_propval *val)
+{
+	int ret = 0;
+	struct wireless_data *data = container_of(psy, struct wireless_data, psy);
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_ONLINE:
+		val->intval = data->WIRELESS_ONLINE;
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
+}
+
+static int ac_get_property(struct power_supply *psy,
+			   enum power_supply_property psp, union power_supply_propval *val)
+{
+	int ret = 0;
+	struct ac_data *data = container_of(psy, struct ac_data, psy);
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_ONLINE:
+		val->intval = data->AC_ONLINE;
+		break;
+	case POWER_SUPPLY_PROP_PRESENT:
+		val->intval = data->ac_present;
+		break;
+	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
+		val->intval = 5000000;
+		break;
+	case POWER_SUPPLY_PROP_CURRENT_MAX:
+		val->intval = batt_cust_data.ac_charger_input_current * 10;
+		break;
+
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
+}
+
+static int usb_get_property(struct power_supply *psy,
+			    enum power_supply_property psp, union power_supply_propval *val)
+{
+	int ret = 0;
+	struct usb_data *data = container_of(psy, struct usb_data, psy);
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_ONLINE:
+#if defined(CONFIG_POWER_EXT)
+		/* #if 0 */
+		data->USB_ONLINE = 1;
+		val->intval = data->USB_ONLINE;
+#else
+#if defined(CONFIG_MTK_POWER_EXT_DETECT)
+		if (true == bat_is_ext_power())
+			data->USB_ONLINE = 1;
+#endif
+		val->intval = data->USB_ONLINE;
+#endif
+		break;
+	case POWER_SUPPLY_PROP_PRESENT:
+		val->intval = data->usb_present;
+		break;
+	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
+		val->intval = 5000000;
+		break;
+	case POWER_SUPPLY_PROP_CURRENT_MAX:
+		val->intval = batt_cust_data.usb_charger_current * 10;
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
+}
+
+static int battery_get_property(struct power_supply *psy,
+				enum power_supply_property psp, union power_supply_propval *val)
+{
+	int ret = 0;
+	struct battery_data *data = container_of(psy, struct battery_data, psy);
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_STATUS:
+		val->intval = data->BAT_STATUS;
+		break;
+	case POWER_SUPPLY_PROP_HEALTH:
+		val->intval = data->BAT_HEALTH;
+		break;
+	case POWER_SUPPLY_PROP_PRESENT:
+		val->intval = data->BAT_PRESENT;
+		break;
+	case POWER_SUPPLY_PROP_TECHNOLOGY:
+		val->intval = data->BAT_TECHNOLOGY;
+		break;
+	case POWER_SUPPLY_PROP_CAPACITY:
+		val->intval = data->BAT_CAPACITY;
+		break;
+	case POWER_SUPPLY_PROP_batt_vol:
+		val->intval = data->BAT_batt_vol;
+		break;
+	case POWER_SUPPLY_PROP_batt_temp:
+		val->intval = data->BAT_batt_temp;
+		break;
+	case POWER_SUPPLY_PROP_TEMP:
+		val->intval = data->BAT_batt_temp;
+		break;
+	case POWER_SUPPLY_PROP_TemperatureR:
+		val->intval = data->BAT_TemperatureR;
+		break;
+	case POWER_SUPPLY_PROP_TempBattVoltage:
+		val->intval = data->BAT_TempBattVoltage;
+		break;
+	case POWER_SUPPLY_PROP_InstatVolt:
+		val->intval = data->BAT_InstatVolt;
+		break;
+	case POWER_SUPPLY_PROP_BatteryAverageCurrent:
+		val->intval = data->BAT_BatteryAverageCurrent;
+		break;
+	case POWER_SUPPLY_PROP_BatterySenseVoltage:
+		val->intval = data->BAT_BatterySenseVoltage;
+		break;
+	case POWER_SUPPLY_PROP_ISenseVoltage:
+		val->intval = data->BAT_ISenseVoltage;
+		break;
+	case POWER_SUPPLY_PROP_ChargerVoltage:
+		val->intval = data->BAT_ChargerVoltage;
+		break;
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
+		if (data->cool_dev)
+			val->intval = data->cool_dev->state;
+		break;
+	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX:
+		if (data->cool_dev)
+			val->intval = data->cool_dev->max_state;
+		break;
+		/* Dual battery */
+	case POWER_SUPPLY_PROP_status_smb:
+		val->intval = data->status_smb;
+		break;
+	case POWER_SUPPLY_PROP_capacity_smb:
+		val->intval = data->capacity_smb;
+		break;
+	case POWER_SUPPLY_PROP_present_smb:
+		val->intval = data->present_smb;
+		break;
+	case POWER_SUPPLY_PROP_adjust_power:
+		val->intval = data->adjust_power;
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+
+	return ret;
+}
+
+/* wireless_data initialization */
+static struct wireless_data wireless_main = {
+	.psy = {
+		.name = "wireless",
+		.type = POWER_SUPPLY_TYPE_WIRELESS,
+		.properties = wireless_props,
+		.num_properties = ARRAY_SIZE(wireless_props),
+		.get_property = wireless_get_property,
+		},
+	.WIRELESS_ONLINE = 0,
+	.wireless_old_state = -1,
+};
+
+/* ac_data initialization */
+static struct ac_data ac_main = {
+	.psy = {
+		.name = "ac",
+		.type = POWER_SUPPLY_TYPE_MAINS,
+		.properties = ac_props,
+		.num_properties = ARRAY_SIZE(ac_props),
+		.get_property = ac_get_property,
+		},
+	.AC_ONLINE = 0,
+	.ac_present = 0,
+	.ac_old_state = -1,
+};
+
+/* usb_data initialization */
+static struct usb_data usb_main = {
+	.psy = {
+		.name = "usb",
+		.type = POWER_SUPPLY_TYPE_USB,
+		.properties = usb_props,
+		.num_properties = ARRAY_SIZE(usb_props),
+		.get_property = usb_get_property,
+		},
+	.USB_ONLINE = 0,
+	.usb_present = 0,
+	.usb_old_state = -1,
+};
+
+static struct mtk_cooler_platform_data cooler = {
+	.type = "battery",
+	.state = 0,
+	.max_state = THERMAL_MAX_TRIPS,
+	.level = 0,
+	.levels = {
+		CHARGE_CURRENT_1000_00_MA, CHARGE_CURRENT_1000_00_MA,
+		CHARGE_CURRENT_1000_00_MA, CHARGE_CURRENT_1000_00_MA,
+		CHARGE_CURRENT_500_00_MA, CHARGE_CURRENT_500_00_MA,
+		CHARGE_CURRENT_500_00_MA, CHARGE_CURRENT_250_00_MA,
+		CHARGE_CURRENT_250_00_MA, CHARGE_CURRENT_250_00_MA,
+		CHARGE_CURRENT_250_00_MA, CHARGE_CURRENT_250_00_MA,
+	},
+};
+
+/* battery_data initialization */
+static struct battery_data battery_main = {
+	.psy = {
+		.name = "battery",
+		.type = POWER_SUPPLY_TYPE_BATTERY,
+		.properties = battery_props,
+		.num_properties = ARRAY_SIZE(battery_props),
+		.get_property = battery_get_property,
+		},
+/* CC: modify to have a full power supply status */
+#if defined(CONFIG_POWER_EXT)
+	.BAT_STATUS = POWER_SUPPLY_STATUS_FULL,
+	.BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD,
+	.BAT_PRESENT = 1,
+	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION,
+	.BAT_CAPACITY = 100,
+	.BAT_batt_vol = 4200,
+	.BAT_batt_temp = 22,
+	/* Dual battery */
+	.status_smb = POWER_SUPPLY_STATUS_NOT_CHARGING,
+	.capacity_smb = 50,
+	.present_smb = 0,
+	/* ADB CMD discharging */
+	.adjust_power = -1,
+#else
+	.BAT_STATUS = POWER_SUPPLY_STATUS_NOT_CHARGING,
+	.BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD,
+	.BAT_PRESENT = 1,
+	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION,
+#if defined(CONFIG_MTK_PUMP_EXPRESS_SUPPORT) || defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
+	.BAT_CAPACITY = -1,
+#else
+	.BAT_CAPACITY = 50,
+#endif
+	.BAT_batt_vol = 0,
+	.BAT_batt_temp = 0,
+	/* Dual battery */
+	.status_smb = POWER_SUPPLY_STATUS_NOT_CHARGING,
+	.capacity_smb = 50,
+	.present_smb = 0,
+	/* ADB CMD discharging */
+	.adjust_power = -1,
+#endif
+};
+
 
 #if !defined(CONFIG_POWER_EXT)
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
@@ -1757,8 +2224,8 @@ static void battery_update(struct battery_data *bat_data)
 
 	} else {		/* Only Battery */
 
-		bat_data->BAT_STATUS = POWER_SUPPLY_STATUS_NOT_CHARGING;
-		pr_notice("battery status: %s\n", "not charging");
+		bat_data->BAT_STATUS = POWER_SUPPLY_STATUS_DISCHARGING;
+		pr_notice("battery status: %s\n", "discharging");
 		if (BMT_status.bat_vol <= batt_cust_data.v_0percent_tracking)
 			resetBatteryMeter = mt_battery_0Percent_tracking_check();
 		else
@@ -2628,6 +3095,13 @@ static void mt_battery_thermal_check(void)
 		}
 #if defined(CONFIG_MTK_JEITA_STANDARD_SUPPORT)
 		/* ignore default rule */
+		if (BMT_status.temperature <= -10) {
+			pr_notice("[Battery] Tbat(%d)<= -10, system need power down.\n", BMT_status.temperature);
+#ifdef CONFIG_AMAZON_SIGN_OF_LIFE
+			life_cycle_set_thermal_shutdown_reason(THERMAL_SHUTDOWN_REASON_BATTERY);
+#endif
+			orderly_poweroff(true);
+		}
 #else
 		if (BMT_status.temperature >= 60) {
 #if defined(CONFIG_POWER_EXT)
@@ -3060,7 +3534,7 @@ void BAT_thread(void)
 		total_time_plug_in =
 			(now_time.tv_sec - chr_plug_in_time.tv_sec) + g_custom_plugin_time;
 
-		if (total_time_plug_in > PLUGIN_THRESHOLD) {
+		if (total_time_plug_in > PLUGIN_THRESHOLD)
 			g_custom_charging_cv = BATTERY_VOLT_04_100000_V;
 
 		pr_notice("total_time_plug_in(%lu), cv(%d)\r\n",
@@ -3160,8 +3634,6 @@ void bat_thread_wakeup(void)
 	wake_up(&bat_thread_wq);
 }
 
-#if !defined(CONFIG_POWER_EXT)
-#endif /* CONFIG_POWER_EXT */
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // fop API */
@@ -4370,6 +4842,10 @@ static void battery_timer_resume(void)
 
 	if (is_pcm_timer_trigger == true || bat_spm_timeout) {
 		mutex_lock(&bat_mutex);
+
+		if (bat_spm_timeout && (BMT_status.UI_SOC > BMT_status.SOC))
+			BMT_status.UI_SOC = BMT_status.SOC;
+
 		BAT_thread();
 		mutex_unlock(&bat_mutex);
 	} else {

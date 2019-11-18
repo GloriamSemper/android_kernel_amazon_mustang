@@ -558,9 +558,6 @@ err1:
 	if (pAd->mpdu_blk_pool.mem)
 		os_free_mem(pAd, pAd->mpdu_blk_pool.mem);	/* free BA pool */
 
-#ifdef INF_AMAZON_SE
-err0:
-#endif /* INF_AMAZON_SE */
 #ifdef ST
 err0:
 #endif /* ST */

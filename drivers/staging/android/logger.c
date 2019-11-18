@@ -34,13 +34,6 @@
 
 #include <asm/ioctls.h>
 
-#ifdef CONFIG_AMAZON_METRICS_LOG
-#include <linux/metricslog.h>
-
-static int metrics_init;
-#define VITAL_ENTRY_MAX_PAYLOAD 512
-#endif
-
 static int s_fake_read;
 module_param_named(fake_read, s_fake_read, int, 0660);
 
@@ -1329,7 +1322,6 @@ static int __init logger_init(void)
 {
 	int ret;
 
-#ifndef CONFIG_AMAZON_LOGD
 	ret = create_log(LOGGER_LOG_MAIN, __MAIN_BUF_SIZE);
 	if (unlikely(ret))
 		goto out;
@@ -1345,28 +1337,8 @@ static int __init logger_init(void)
 	ret = create_log(LOGGER_LOG_SYSTEM, __SYSTEM_BUF_SIZE);
 	if (unlikely(ret))
 		goto out;
-#endif /* CONFIG_AMAZON_LOGD */
 
 
-#ifdef CONFIG_AMAZON_METRICS_LOG
-	ret = create_log(LOGGER_LOG_METRICS, __METRICS_BUF_SIZE);
-	if (unlikely(ret))
-		goto out;
-
-	metrics_init = 1;
-#endif
-
-#ifdef CONFIG_AMAZON_LOG
-#ifndef CONFIG_AMAZON_LOGD
-    ret = create_log(LOGGER_LOG_AMAZON_MAIN, 256*1024);
-    if (unlikely(ret))
-        goto out;
-#endif /* CONFIG_AMAZON_LOGD */
-
-	ret = create_log(LOGGER_LOG_AMAZON_VITALS, __VITALS_BUF_SIZE);
-	if (unlikely(ret))
-		goto out;
-#endif
 out:
 	return ret;
 }

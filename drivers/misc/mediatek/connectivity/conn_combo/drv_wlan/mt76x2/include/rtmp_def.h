@@ -73,9 +73,6 @@
 #define TX_RING_SIZE            8	/* 1 */
 #define PRIO_RING_SIZE          8
 #define MGMT_RING_SIZE		32	/* PRIO_RING_SIZE */
-#ifdef INF_AMAZON_SE
-#define RX_RING_SIZE            1
-#else /* INF_AMAZON_SE */
 #ifdef WEBOS_SUPPORT
 #define RX_RING_SIZE            2
 #else /* WEBOS_SUPPORT */
@@ -85,7 +82,6 @@
 #define RX_RING_SIZE            8
 #endif /* SMALL_DMA_POOL_SUPPORT */
 #endif /* WEBOS_SUPPORT */
-#endif /* INF_AMAZON_SE */
 
 #ifdef MULTI_URB
 #ifdef WEBOS_SUPPORT

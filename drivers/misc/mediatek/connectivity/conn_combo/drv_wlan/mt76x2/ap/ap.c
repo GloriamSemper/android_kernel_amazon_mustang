@@ -158,11 +158,6 @@ VOID APStartUp(RTMP_ADAPTER *pAd)
 
 	DBGPRINT(RT_DEBUG_TRACE, ("===> APStartUp\n"));
 
-#ifdef INF_AMAZON_SE
-	for (i = 0; i < NUM_OF_TX_RING; i++)
-		pAd->BulkOutDataSizeLimit[i] = 24576;
-#endif /* INF_AMAZON_SE */
-
 	AsicDisableSync(pAd);
 
 	TxPreamble = (pAd->CommonCfg.TxPreamble == Rt802_11PreambleLong ? 0 : 1);

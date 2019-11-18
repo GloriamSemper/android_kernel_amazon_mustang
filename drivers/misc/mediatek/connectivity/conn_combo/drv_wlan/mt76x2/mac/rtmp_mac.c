@@ -421,14 +421,6 @@ VOID RTMPWriteTxWI_Data(RTMP_ADAPTER *pAd, TXWI_STRUCT *pTxWI, TX_BLK *pTxBlk)
 	/* for rate adapation */
 	pkt_id = mcs;
 
-#ifdef INF_AMAZON_SE
-	/*Iverson patch for WMM A5-T07 ,WirelessStaToWirelessSta do not bulk out aggregate */
-	if (RTMP_GET_PACKET_NOBULKOUT(pTxBlk->pPacket)) {
-		if (phy_mode == MODE_CCK)
-			pkt_id = 6;
-	}
-#endif /* INF_AMAZON_SE */
-
 
 #ifdef CONFIG_FPGA_MODE
 	if (pAd->fpga_ctl.fpga_on & 0x6) {
@@ -1164,18 +1156,8 @@ INT rtmp_mac_pbf_init(RTMP_ADAPTER *pAd)
 
 #ifdef RTMP_MAC
 	RTMP_REG_PAIR rtmp_pbf_regs[] = {
-#ifdef INF_AMAZON_SE
-		/*
-		   iverson modify for usb issue, 2008/09/19
-		   6F + 6F < total page count FE
-		   so that RX doesn't occupy TX's buffer space when WMM congestion.
-		 */
-		{PBF_MAX_PCNT, 0x1F3F6F6F}
-		,
-#else
 		{PBF_MAX_PCNT, 0x1F3FBF9F}
 		,		/* 0x1F3f7f9f},         Jan, 2006/04/20 */
-#endif /* INF_AMAZON_SE */
 	};
 #endif /* RTMP_MAC */
 

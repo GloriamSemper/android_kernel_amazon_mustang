@@ -533,10 +533,6 @@ struct musb {
 	enum usb_force_mode force_mode; /*0:OTG mode 1:host mode 2:device mode 3:idle mode*/
 #endif
 
-#ifdef CONFIG_USB_AMAZON_DOCK
-	int dock_state;
-	struct power_supply *batt_psy;
-#endif
 };
 
 static inline struct musb *gadget_to_musb(struct usb_gadget *g)

@@ -128,13 +128,8 @@ typedef struct usb_ctrlrequest devctrlrequest;
 #ifdef CONFIG_AP_SUPPORT
 
 #ifdef RTMP_MAC_USB
-#ifdef INF_AMAZON_SE
-#define AP_PROFILE_PATH                 "/ramdisk/etc/Wireless/RT2870AP/RT2870AP.dat"
-#define AP_RTMP_FIRMWARE_FILE_NAME "/ramdisk/etc/Wireless/RT2870AP/RT2870AP.bin"
-#else
 #define AP_PROFILE_PATH			"/etc/Wireless/RT2870AP/RT2870AP.dat"
 #define AP_RTMP_FIRMWARE_FILE_NAME "/etc/Wireless/RT2870AP/RT2870AP.bin"
-#endif /* endif */
 #define AP_DRIVER_VERSION			"3.0.0.0"
 #ifdef MULTIPLE_CARD_SUPPORT
 #define CARD_INFO_PATH			"/etc/Wireless/RT2870AP/RT2870APCard.dat"
@@ -1050,15 +1045,11 @@ extern int ra_mtd_read(int num, loff_t from, size_t len, u_char *buf);
 typedef struct usb_device_id USB_DEVICE_ID;
 
 /* TODO: shiang-usw, fine tune BULKAGGRE_SIZE, origianl is 60 */
-#ifdef INF_AMAZON_SE
-#define BULKAGGRE_SIZE				30
-#else /* !INF_AMAZON_SE */
 #ifdef WEBOS_SUPPORT
 #define BULKAGGRE_SIZE				15	/* 100 */
 #else /* !WEBOS_SUPPORT */
 #define BULKAGGRE_SIZE				100	/* 100 */
 #endif /* WEBOS_SUPPORT */
-#endif /* INF_AMAZON_SE */
 
 #define RTUSB_ALLOC_URB(iso)		usb_alloc_urb(iso, GFP_ATOMIC)
 #define RTUSB_SUBMIT_URB(pUrb)		usb_submit_urb(pUrb, GFP_ATOMIC)

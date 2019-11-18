@@ -350,10 +350,6 @@ INT APSendPacket(RTMP_ADAPTER *pAd, PNDIS_PACKET pPacket)
 	RTMP_SET_PACKET_UP(pPacket, UserPriority);
 	RTMP_SET_PACKET_MGMT_PKT(pPacket, 0x00);	/* mark as non-management frame */
 
-#ifdef INF_AMAZON_SE
-	pAd->BulkOutDataSizeCount[QueIdx] += SrcBufLen;
-#endif /* INF_AMAZON_SE */
-
 	/*
 	   4. put to corrsponding TxSwQueue or Power-saving queue
 
@@ -4982,11 +4978,6 @@ BOOLEAN APFowardWirelessStaToWirelessSta(IN RTMP_ADAPTER *pAd,
 	UCHAR *pHeader802_3;
 	PNDIS_PACKET pForwardPacket;
 
-#ifdef INF_AMAZON_SE
-	/*Iverson patch for WMM A5-T07 ,WirelessStaToWirelessSta do not bulk out aggregate */
-	RTMP_SET_PACKET_NOBULKOUT(pPacket, FALSE);
-#endif /* INF_AMAZON_SE */
-
 #ifdef RT_CFG80211_P2P_SUPPORT
 	if (FromWhichBSSID >= MIN_NET_DEVICE_FOR_CFG80211_VIF_P2P_GO)
 		FromWhichBSSID = FromWhichBSSID - MIN_NET_DEVICE_FOR_CFG80211_VIF_P2P_GO;
@@ -5104,11 +5095,6 @@ BOOLEAN APFowardWirelessStaToWirelessSta(IN RTMP_ADAPTER *pAd,
 #if defined(P2P_SUPPORT) || defined(RT_CFG80211_P2P_SUPPORT)
 			RTMP_SET_PACKET_OPMODE(pForwardPacket, OPMODE_AP);
 #endif /* P2P_SUPPORT */
-
-#ifdef INF_AMAZON_SE
-			/*Iverson patch for WMM A5-T07 ,WirelessStaToWirelessSta do not bulk out aggregate */
-			RTMP_SET_PACKET_NOBULKOUT(pForwardPacket, TRUE);
-#endif /* INF_AMAZON_SE */
 
 			APSendPacket(pAd, pForwardPacket);
 		}

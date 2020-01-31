@@ -13,7 +13,7 @@
 /dts-v1/;
 
 #include "mt8163.dtsi"
-#include "karnak_bat_setting.dtsi"
+#include "mustang_bat_setting.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 
 / {
@@ -331,7 +331,7 @@
 	/*1:ACC mode, 2:low cost without in bias, 6:low cost with in bias*/
 	accdet-mic-mode = <1>;
 	/*0:micbias1 is controlled by reg 0x710, for abg123 & abf123 & old projects*/
-	/*1:micbias1 is controlled by both reg 0x710 & 0x77A, for karnak & abc123*/
+	/*1:micbias1 is controlled by both reg 0x710 & 0x77A, for mustang & abc123*/
 	accdet-micbias1-ind-ctl = <1>;
 	/*0--MD_MAX--UP_MAX--DW_MAX*/
 	headset-three-key-threshold = <0 100 220 500>;

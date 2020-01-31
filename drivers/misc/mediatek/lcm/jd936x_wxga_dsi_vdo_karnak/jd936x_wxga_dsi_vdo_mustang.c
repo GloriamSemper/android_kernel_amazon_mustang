@@ -341,7 +341,7 @@ static void power_on(void)
 
 #endif
 
-static void init_karnak_fiti_tpv_lcm(void)
+static void init_mustang_fiti_tpv_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -897,7 +897,7 @@ static void init_karnak_fiti_tpv_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_kd_lcm(void)
+static void init_mustang_fiti_kd_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -1612,7 +1612,7 @@ static void init_karnak_fiti_kd_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_kd_hsd_lcm(void)
+static void init_mustang_fiti_kd_hsd_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -2310,7 +2310,7 @@ static void init_karnak_fiti_kd_hsd_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_kd2_lcm(void)
+static void init_mustang_fiti_kd2_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -2870,7 +2870,7 @@ static void init_karnak_fiti_kd2_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_inx_lcm(void)
+static void init_mustang_fiti_inx_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -3355,7 +3355,7 @@ static void init_karnak_fiti_inx_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_txd_lcm(void)
+static void init_mustang_fiti_txd_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -3789,7 +3789,7 @@ static void init_karnak_fiti_txd_lcm(void)
 	dsi_set_cmdq(data_array, 1, 1);
 }
 
-static void init_karnak_fiti_starry_lcm(void)
+static void init_mustang_fiti_starry_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -4454,19 +4454,19 @@ static void lcm_init(void)
 
 
 	if (vendor_id == FITI_KD)
-		init_karnak_fiti_kd_lcm();
+		init_mustang_fiti_kd_lcm();
 	else if (vendor_id == FITI_KD_HSD)
-		init_karnak_fiti_kd_hsd_lcm();
+		init_mustang_fiti_kd_hsd_lcm();
 	else if (vendor_id == FITI_KD2)
-		init_karnak_fiti_kd2_lcm();
+		init_mustang_fiti_kd2_lcm();
 	else if (vendor_id == FITI_INX)
-		init_karnak_fiti_inx_lcm();
+		init_mustang_fiti_inx_lcm();
 	else if (vendor_id == FITI_TXD)
-		init_karnak_fiti_txd_lcm();
+		init_mustang_fiti_txd_lcm();
 	else if (vendor_id == FITI_STARRY)
-		init_karnak_fiti_starry_lcm();
+		init_mustang_fiti_starry_lcm();
 	else
-		init_karnak_fiti_tpv_lcm();
+		init_mustang_fiti_tpv_lcm();
 
 #else
 	get_lcm_id();
@@ -4518,19 +4518,19 @@ static void lcm_resume(void)
 	get_lcm_id();
 
 	if(vendor_id == FITI_KD)
-		init_karnak_fiti_kd_lcm();
+		init_mustang_fiti_kd_lcm();
 	else if(vendor_id == FITI_KD_HSD)
-		init_karnak_fiti_kd_hsd_lcm();
+		init_mustang_fiti_kd_hsd_lcm();
 	else if(vendor_id == FITI_KD2)
-		init_karnak_fiti_kd2_lcm();
+		init_mustang_fiti_kd2_lcm();
 	else if (vendor_id == FITI_INX)
-		init_karnak_fiti_inx_lcm();
+		init_mustang_fiti_inx_lcm();
 	else if (vendor_id == FITI_TXD)
-		init_karnak_fiti_txd_lcm();
+		init_mustang_fiti_txd_lcm();
 	else if (vendor_id == FITI_STARRY)
-		init_karnak_fiti_starry_lcm();
+		init_mustang_fiti_starry_lcm();
 	else
-		init_karnak_fiti_tpv_lcm(); /* TPV panel */
+		init_mustang_fiti_tpv_lcm(); /* TPV panel */
 
 }
 
@@ -4618,8 +4618,8 @@ static void lcm_set_backlight_mode(unsigned int mode)
        dsi_set_cmdq_V2(0x55, 1, ((unsigned char *)&mode), 1);
 }
 
-LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_tpv_lcm_drv = {
-	.name			= "jd9366_wxga_dsi_vdo_karnak_tpv",
+LCM_DRIVER jd9366_wxga_dsi_vdo_mustang_fiti_tpv_lcm_drv = {
+	.name			= "jd9366_wxga_dsi_vdo_mustang_tpv",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4632,8 +4632,8 @@ LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_tpv_lcm_drv = {
 
 };
 
-LCM_DRIVER jd9367_wxga_dsi_vdo_karnak_fiti_kd_lcm_drv = {
-	.name			= "jd9367_wxga_dsi_vdo_karnak_fiti_kd",
+LCM_DRIVER jd9367_wxga_dsi_vdo_mustang_fiti_kd_lcm_drv = {
+	.name			= "jd9367_wxga_dsi_vdo_mustang_fiti_kd",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4645,8 +4645,8 @@ LCM_DRIVER jd9367_wxga_dsi_vdo_karnak_fiti_kd_lcm_drv = {
 	.set_backlight_mode     = lcm_set_backlight_mode,
 };
 
-LCM_DRIVER jd9365_wxga_dsi_vdo_karnak_fiti_kd_hsd_lcm_drv = {
-	.name			= "jd9365_wxga_dsi_vdo_karnak_fiti_kd_hsd",
+LCM_DRIVER jd9365_wxga_dsi_vdo_mustang_fiti_kd_hsd_lcm_drv = {
+	.name			= "jd9365_wxga_dsi_vdo_mustang_fiti_kd_hsd",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4658,8 +4658,8 @@ LCM_DRIVER jd9365_wxga_dsi_vdo_karnak_fiti_kd_hsd_lcm_drv = {
 	.set_backlight_mode     = lcm_set_backlight_mode,
 };
 
-LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_kd_lcm_drv = {
-	.name			= "jd9366_wxga_dsi_vdo_karnak_fiti_kd",
+LCM_DRIVER jd9366_wxga_dsi_vdo_mustang_fiti_kd_lcm_drv = {
+	.name			= "jd9366_wxga_dsi_vdo_mustang_fiti_kd",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4671,8 +4671,8 @@ LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_kd_lcm_drv = {
 	.set_backlight_mode     = lcm_set_backlight_mode,
 };
 
-LCM_DRIVER jd9367_wxga_dsi_vdo_karnak_fiti_inx_lcm_drv = {
-	.name			= "jd9367_wxga_dsi_vdo_karnak_fiti_inx",
+LCM_DRIVER jd9367_wxga_dsi_vdo_mustang_fiti_inx_lcm_drv = {
+	.name			= "jd9367_wxga_dsi_vdo_mustang_fiti_inx",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4684,8 +4684,8 @@ LCM_DRIVER jd9367_wxga_dsi_vdo_karnak_fiti_inx_lcm_drv = {
 	.set_backlight_mode     = lcm_set_backlight_mode,
 };
 
-LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_txd_lcm_drv = {
-	.name			= "jd9366_wxga_dsi_vdo_karnak_fiti_txd",
+LCM_DRIVER jd9366_wxga_dsi_vdo_mustang_fiti_txd_lcm_drv = {
+	.name			= "jd9366_wxga_dsi_vdo_mustang_fiti_txd",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
@@ -4697,8 +4697,8 @@ LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_txd_lcm_drv = {
 	.set_backlight_mode     = lcm_set_backlight_mode,
 };
 
-LCM_DRIVER jd9366_wxga_dsi_vdo_karnak_fiti_starry_lcm_drv = {
-	.name			= "jd9366_wxga_dsi_vdo_karnak_fiti_starry",
+LCM_DRIVER jd9366_wxga_dsi_vdo_mustang_fiti_starry_lcm_drv = {
+	.name			= "jd9366_wxga_dsi_vdo_mustang_fiti_starry",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,

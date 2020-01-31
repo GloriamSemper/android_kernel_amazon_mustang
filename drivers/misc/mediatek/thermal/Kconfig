@@ -22,11 +22,11 @@ config THERMAL_abc123
 config THERMAL_abg123
 	bool "THERMAL_abg123"
 
-config THERMAL_KARNAK
-	bool "THERMAL_KARNAK"
+config THERMAL_MUSTANG
+	bool "THERMAL_MUSTANG"
 	default n
 	help
-	  For KARNAK specific configurations for thermal related.
+	  For MUSTANG specific configurations for thermal related.
 
 config THERMAL_abc123
 	bool "THERMAL_abc123"

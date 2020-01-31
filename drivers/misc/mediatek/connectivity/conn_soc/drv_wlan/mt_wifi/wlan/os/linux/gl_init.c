@@ -707,7 +707,7 @@ int g_u4P2POnOffing = 0;
 #define BOARD_ID_abc123_STR "0110"
 #define BOARD_ID_abd123_STR "0120"
 #define BOARD_ID_abg123_STR "0032"
-#define BOARD_ID_KARNAK_STR "0033"
+#define BOARD_ID_MUSTANG_STR "0033"
 #define BOARD_ID_abm123_STR "0035"
 char idme_board_id[16];
 
@@ -1244,7 +1244,7 @@ static COUNTRY_POWER_TABLE power_table_abf123[] = {
 };
 
 
-static COUNTRY_POWER_TABLE power_table_karnak[] = {
+static COUNTRY_POWER_TABLE power_table_mustang[] = {
 		{
 			{'W', 'W',}, /*country code*/
 			{/*tx power*/
@@ -1812,7 +1812,7 @@ static COUNTRY_POWER_TABLE power_table_abg123[] = {
 
 struct board_id_power_table_map board_id_power_table_list[] = {
         {BOARD_ID_abm123_STR, power_table_abm123, ARRAY_SIZE(power_table_abm123)},
-	{BOARD_ID_KARNAK_STR, power_table_karnak, ARRAY_SIZE(power_table_karnak)},
+	{BOARD_ID_MUSTANG_STR, power_table_mustang, ARRAY_SIZE(power_table_mustang)},
 	{BOARD_ID_abf123_STR, power_table_abf123, ARRAY_SIZE(power_table_abf123)},
 	{BOARD_ID_abh123_STR, power_table_abh123, ARRAY_SIZE(power_table_abh123)},
 	{BOARD_ID_abc123_STR, power_table_abh123, ARRAY_SIZE(power_table_abh123)},
@@ -3869,7 +3869,7 @@ static void wlanCopyIdmeWifiMfg(P_REG_INFO_T prRegInfo)
 	}
 
 	/* RSSI compensation */
-	if ((kalStrnCmp(CONFIG_ARCH_MTK_PROJECT, "abf123", 4) == 0 || kalStrnCmp(CONFIG_ARCH_MTK_PROJECT, "karnak", 6) == 0) && (prRegInfo->fgRssiCompensationValidbit == FALSE)) {
+	if ((kalStrnCmp(CONFIG_ARCH_MTK_PROJECT, "abf123", 4) == 0 || kalStrnCmp(CONFIG_ARCH_MTK_PROJECT, "mustang", 6) == 0) && (prRegInfo->fgRssiCompensationValidbit == FALSE)) {
 		prRegInfo->uc2GRssiCompensation = 4;
 		prRegInfo->uc5GRssiCompensation = 4;
 		prRegInfo->fgRssiCompensationValidbit = TRUE;

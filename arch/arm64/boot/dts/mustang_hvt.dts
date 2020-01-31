@@ -13,7 +13,7 @@
 /dts-v1/;
 
 #include "mt8163.dtsi"
-#include "karnak_bat_setting.dtsi"
+#include "mustang_bat_setting.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 
 / {

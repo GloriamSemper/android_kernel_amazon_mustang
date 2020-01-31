@@ -191,7 +191,7 @@
 				55 13570
 				60 11270>;
 
-#include "karnak_battery_table_0.dtsi"
-#include "karnak_battery_table_1.dtsi"
-#include "karnak_battery_table_2.dtsi"
+#include "mustang_battery_table_0.dtsi"
+#include "mustang_battery_table_1.dtsi"
+#include "mustang_battery_table_2.dtsi"
 };

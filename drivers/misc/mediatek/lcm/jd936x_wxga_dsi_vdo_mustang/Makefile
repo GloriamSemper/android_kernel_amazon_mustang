@@ -3,6 +3,6 @@
 #
 
 
-obj-y += jd936x_wxga_dsi_vdo_karnak.o
+obj-y += jd936x_wxga_dsi_vdo_mustang.o
 
 ccflags-$(CONFIG_MTK_LCM) += -I$(srctree)/drivers/misc/mediatek/lcm/inc

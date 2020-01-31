@@ -175,7 +175,6 @@ void accdet_auxadc_switch(int enable)
 	int needDelay = pmic_pwrap_read(ACCDET_RSV) & ACCDET_MICBIAS1_OFF_BIT;
 	if (enable) {
 		pmic_pwrap_write(ACCDET_RSV, ACCDET_2V8_MODE_ON);
-		/* currently mic_voltage_delay is 80ms, this is too long for us. As we checked, 20ms shoudl be okay on Karnak... anywya, we use half of the mic_voltage_delay here */
 		if (needDelay)
 			msleep(mic_voltage_delay/2);
 		/*ACCDET_DEBUG("ACCDET enable switch\n");*/
@@ -480,7 +479,7 @@ static int accdet_switch_manual(bool plug_in, int type)
 /*----------------------------------------------------------------------
  Refer to SD80 datasheet, 3rd ring (GND_MIC1) should be connected to Ring2 pin of SD80
  and 4th ring (GND_MIC2_1) should be conneted to SLEEVE pin of SD80.
- However the HW connection on Karnak is reverted...
+ However the HW connection on Mustang is reverted...
  In order to adapt the HW, we revert the hp_sw1_pin control for SD80, too.
  Currently hp_sw1_pin = 1 means MICP = RING2 = 4th ring (GND_MIC2_1), CTIA mode.
  hp_sw1_pin = 0 means MICP = SLEEVE = 3rd ring (GND_MIC1), OMTP mode.

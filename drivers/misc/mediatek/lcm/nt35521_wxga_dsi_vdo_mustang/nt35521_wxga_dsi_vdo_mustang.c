@@ -338,7 +338,7 @@ static void power_on(void)
 
 #endif
 
-static void init_karnak_kd_lcm(void)
+static void init_mustang_kd_lcm(void)
 {
 	unsigned int data_array[64];
 
@@ -1067,7 +1067,7 @@ static void lcm_init(void)
 			 lcm_get_build_type(),
 			 lcm_get_vendor_type());
 
-	init_karnak_kd_lcm(); /* KD panel */
+	init_mustang_kd_lcm(); /* KD panel */
 
 #else
 	get_lcm_id();
@@ -1123,7 +1123,7 @@ static void lcm_resume(void)
 	MDELAY(10);
 	lcm_reset();
 
-	init_karnak_kd_lcm(); /* KD panel */
+	init_mustang_kd_lcm(); /* KD panel */
 }
 
 /* Seperate lcm_resume_power and lcm_reset from power_on func,
@@ -1210,8 +1210,8 @@ static void lcm_set_backlight_mode(unsigned int mode)
 	dsi_set_cmdq_V2(0x55, 1, ((unsigned char *)&mode), 1);
 }
 
-LCM_DRIVER nt35521_wxga_dsi_vdo_karnak_kd_lcm_drv = {
-	.name			= "nt35521_wxga_dsi_vdo_karnak_kd",
+LCM_DRIVER nt35521_wxga_dsi_vdo_mustang_kd_lcm_drv = {
+	.name			= "nt35521_wxga_dsi_vdo_mustang_kd",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params     = lcm_get_params,
 	.init           = lcm_init,
